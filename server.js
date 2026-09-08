@@ -1,7 +1,7 @@
+
 const express = require("express");
-const mysql = require("mysql2");
 const cors = require("cors");
-require("dotenv").config();
+const db = require("./db");
 
 const app = express();
 
@@ -9,33 +9,17 @@ app.use(cors());
 app.use(express.json());
 
 
-// DATABASE CONNECTION
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
-
-
-// CHECK DATABASE CONNECTION
-db.connect((err) => {
-    if (err) {
-        console.error("Database connection failed:", err);
-        return;
-    }
-
-    console.log("MySQL connected successfully!");
-});
-
-
+// ===============================
 // TEST ROUTE
+// ===============================
 app.get("/", (req, res) => {
     res.send("Animal Listing System Backend is running!");
 });
 
 
+// ===============================
 // GET ALL ANIMALS
+// ===============================
 app.get("/api/animals", (req, res) => {
 
     db.query("SELECT * FROM animals", (err, results) => {
@@ -51,7 +35,9 @@ app.get("/api/animals", (req, res) => {
 });
 
 
+// ===============================
 // ADD ANIMAL
+// ===============================
 app.post("/api/animals", (req, res) => {
 
     const { name, category, icon } = req.body;
@@ -87,7 +73,9 @@ app.post("/api/animals", (req, res) => {
 });
 
 
+// ===============================
 // DELETE ANIMAL
+// ===============================
 app.delete("/api/animals/:id", (req, res) => {
 
     const id = req.params.id;
@@ -103,6 +91,12 @@ app.delete("/api/animals/:id", (req, res) => {
                 });
             }
 
+            if (result.affectedRows === 0) {
+                return res.status(404).json({
+                    message: "Animal not found."
+                });
+            }
+
             res.json({
                 message: "Animal deleted successfully!"
             });
@@ -111,9 +105,12 @@ app.delete("/api/animals/:id", (req, res) => {
 });
 
 
+// ===============================
 // START SERVER
-const PORT = 3000;
+// ===============================
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
+
